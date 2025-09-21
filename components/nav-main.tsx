@@ -11,7 +11,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { startTransition, useOptimistic, useTransition } from "react";
 
 type NavItem = {
   title: string;
@@ -21,6 +22,16 @@ type NavItem = {
 
 export function NavMain({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [optimisticPath, setOptimisticPath] = useOptimistic(pathname);
+  const [isPending, setIsPending] = useTransition();
+
+  const handleNavigation = (url: string) => {
+    startTransition(() => {
+      setOptimisticPath(url);
+      router.push(url);
+    });
+  };
 
   const isRouteActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -61,6 +72,7 @@ export function NavMain({ items }: { items: NavItem[] }) {
                   asChild
                   tooltip={item.title}
                   isActive={active}
+                  onClick={() => handleNavigation(item.url)}
                   className="data-[active=true]:bg-gray-200 data-[active=true]:text-accent-foreground"
                 >
                   <Link
